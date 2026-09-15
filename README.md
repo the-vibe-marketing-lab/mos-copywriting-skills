@@ -1,6 +1,6 @@
 # mos-copywriting-skills
 
-The Copywriting Blueprint for Claude Code: research the reader, write the copy, then pressure-test it before it ships. Three skills, run in order.
+The Copywriting Blueprint for Claude Code: research the reader, write the copy, then pressure-test it before it ships. Three skills run in order, plus a content brief builder for articles that need to rank.
 
 Built by [The Vibe Marketing Lab](https://www.skool.com/the-vibe-marketing-lab) for the MarketingOS engine (`pipx install marketing-os`).
 
@@ -13,6 +13,7 @@ Built by [The Vibe Marketing Lab](https://www.skool.com/the-vibe-marketing-lab) 
 | 1 | `/mos-copy-research` | Runs the 6-step research ladder and builds a compounding Research Bank of real reader language | ~10-20 min |
 | 2 | `/mos-copywriting` | Writes headlines, ads, emails, landing pages, sales letters and VSLs from distilled classic frameworks. Also reviews existing copy | ~3-8 min |
 | 3 | `/mos-proofread` | QA pass: ordered single-lens reviews (strategy, structure, clarity, cut, voice, mechanics, read-aloud) returning line-referenced rewrites | ~2-5 min |
+| + | `/mos-copy-brief` | SEO + GEO content brief as one markdown file: brief tables, a SERP-driven outline, rare primary-source stats and what AI answers cite. Run it before `/mos-copywriting` on any article that needs to rank | ~5-10 min |
 
 `/mos-copywriting` gates on real reader language, so `/mos-copy-research` is not optional for anything high-stakes. The research compounds: every run appends to an Avatar Knowledge Log and re-synthesises the Research Bank, so the second sales page starts further ahead than the first.
 
@@ -20,6 +21,11 @@ Built by [The Vibe Marketing Lab](https://www.skool.com/the-vibe-marketing-lab) 
 
 1. **Claude Code** with a Claude Pro or Max subscription.
 2. **Your business files** in the project you run from: `reference/core/audience.md` and `reference/core/offer.md` at minimum. `/mos-copy-research` writes its bank to `business/offer/copy-research-bank.md` and the avatar log under `business/audience/_shared/`.
+3. **For `/mos-copy-brief` (optional keys, in the `.env` of the folder you run from):** Python 3.9+, plus
+   - `DATAFORSEO_LOGIN` + `DATAFORSEO_PASSWORD` for keyword numbers and Google results (pay as you go, about $0.05-0.12 per brief)
+   - `FIRECRAWL_API_KEY` for competitor pages (the free plan covers roughly 100 briefs a month)
+   - or `APIFY_TOKEN` as a fallback for both (no keyword numbers)
+   - or nothing: the free version uses Claude's own search and says what it couldn't measure.
 
 ## Install
 
