@@ -64,7 +64,9 @@ NOISE = ("contact us", "contact", "enquire now", "latest articles", "testimonial
          "follow us", "share this", "share this post", "recent posts", "you may also like",
          "you might also like", "request a quote", "get a quote", "book online", "call us",
          "email us", "copyright", "categories", "table of contents", "leave a reply", "comments",
-         "about the author", "written by", "ready to get started", "get your free quote")
+         "about the author", "written by", "ready to get started", "get your free quote",
+         "awards and recognition", "related reading", "further reading", "sources", "sources and data",
+         "references")
 
 # Checked in order; the first match wins. Specific themes come before broad ones.
 THEMES = {
@@ -78,7 +80,7 @@ THEMES = {
     "types": r"\btypes?\b|\bkinds?\b|\bvarieties\b",
     "steps_how_to": r"\bhow to\b|\bsteps?\b|step-by-step|\bguide\b|\bset ?up\b|\binstall",
     "problems_mistakes": r"\bproblems?\b|\bissues?\b|\bdisadvantages?\b|\bdownsides?\b|\bmistakes?\b"
-                         r"|\bavoid\b|\bmyths?\b|\brisks?\b|\bchallenges?\b",
+                         r"|\bavoid\b|\bmyths?\b|\brisks?\b|\bpitfalls?\b",
     "tools": r"\btools?\b|\bsoftware\b|\bapps?\b|\bplatforms?\b|\btemplates?\b|\bresources?\b",
     "examples_case_studies": r"\bexamples?\b|case stud|success stor|\bresults\b|\binspiration\b",
     "tips_strategies": r"\btips?\b|\bstrateg(y|ies)\b|\bideas?\b|ways to|\btactics?\b|\bhacks?\b"
@@ -87,12 +89,11 @@ THEMES = {
     "metrics_tracking": r"\bmeasur|\btrack(ing)?\b|\bmetrics?\b|\bkpis?\b|\banalytics\b",
     "maintenance": r"\bmaint(ain|enance)\b|\brepairs?\b|\breplac|\bupkeep\b",
     "local": r"near me|in your area|service areas?",
-    "benefits": r"\bbenefits?\b|\badvantages?\b|^why\b|\bworth\b|\bimportan(t|ce)\b|\bpurpose\b",
+    "benefits": r"\bbenefits?\b|\badvantages?\b|^why\b|\bworth\b|\bimportance\b|\bpurpose\b",
 }
 THEME_PATTERNS = {theme: re.compile(pattern) for theme, pattern in THEMES.items()}
+PRICE_NOISE = re.compile(r"\$\s?\d[\d,.]*\s*(/|per)\s*(mo|month|week|year)|starting at \$", re.I)
 
-QUESTION_WORDS = ("how", "what", "why", "when", "where", "which", "who", "can", "is", "does",
-                  "do", "are", "should", "will")
 AUTOCOMPLETE_PREFIXES = ("how", "what", "why", "when", "which", "can", "is", "best", "cost of")
 STOP_WORDS = {"how", "to", "get", "more", "the", "a", "an", "for", "of", "in", "on", "and", "or", "what",
               "is", "are", "best", "top", "your", "my", "with", "why", "do", "does", "can", "ideas", "tips"}
@@ -303,7 +304,8 @@ def clean_heading(text):
 
 
 def is_noise(heading):
-    if len(heading) < 4 or len(heading) > 140:
+    # A heading starting lowercase is a stat callout or a sentence fragment, not a section title.
+    if len(heading) < 4 or len(heading) > 140 or heading[0].islower() or PRICE_NOISE.search(heading):
         return True
     normal = re.sub(r"[^a-z0-9 ]+", "", heading.lower()).strip()
     for phrase in NOISE:
@@ -455,7 +457,7 @@ DFS_SERP_HANDLERS = {"organic": dfs_organic, "featured_snippet": dfs_featured,
 
 def serp_dataforseo(args):
     body = {"keyword": args.keyword, "location_code": location_code(args), "language_code": args.lang,
-            "device": "desktop", "depth": 10, "load_async_ai_overview": True}
+            "device": "desktop", "depth": 20, "load_async_ai_overview": True}  # 20: SERP features eat slots
     serp = empty_serp(args, "dataforseo")
     for item in dataforseo("serp/google/organic/live/advanced", body).get("items") or []:
         handler = DFS_SERP_HANDLERS.get(item.get("type"))
@@ -469,7 +471,7 @@ def serp_apify(args):
     country = "gb" if args.country.lower() == "uk" else args.country.lower()
     items = apify_run("apify~google-search-scraper", {
         "queries": args.keyword, "countryCode": country, "languageCode": args.lang,
-        "resultsPerPage": 10, "maxPagesPerQuery": 1})
+        "resultsPerPage": 20, "maxPagesPerQuery": 1})
     page = items[0] if items else {}
     serp = empty_serp(args, "apify")
     serp["organic"] = [{"rank": o.get("position"), "url": o.get("url"), "title": o.get("title"),
@@ -510,14 +512,23 @@ def cmd_keywords(args):
     suggestions = dataforseo("dataforseo_labs/google/keyword_suggestions/live",
                              {**base, "keyword": args.keyword, "limit": args.limit})
     overview_items = overview.get("items") or []
+    related_rows = by_volume(keyword_row(i.get("keyword_data")) for i in related.get("items") or [])
+    suggestion_rows = by_volume(keyword_row(i) for i in suggestions.get("items") or [])
     return {
         "provider": "dataforseo", "keyword": args.keyword, "country": args.country,
         "overview": keyword_row(overview_items[0]) if overview_items else None,
-        "related": by_volume(keyword_row(i.get("keyword_data")) for i in related.get("items") or []),
-        "suggestions": by_volume(keyword_row(i) for i in suggestions.get("items") or []),
-        "note": "DataForSEO floors very low volumes at 10/mo." if overview_items else
-                "No keyword data returned: the term is likely below DataForSEO's volume floor.",
+        "related": related_rows, "suggestions": suggestion_rows,
+        "note": keywords_note(args.keyword, bool(overview_items), related_rows + suggestion_rows),
     }
+
+
+def keywords_note(keyword, has_overview, rows):
+    notes = ["DataForSEO floors very low volumes at 10/mo." if has_overview else
+             "No keyword data returned: the term is likely below DataForSEO's volume floor."]
+    if len({r["keyword"] for r in rows} - {keyword}) < 3:
+        notes.append("Fewer than 3 related terms returned: top up secondary keywords from autocomplete, "
+                     "PAA and related searches, marked Not measured.")
+    return " ".join(notes)
 
 
 def google_suggest(query, args):
@@ -536,9 +547,8 @@ def cmd_autocomplete(args):
             if suggestion.lower() != args.keyword.lower() and suggestion not in found:
                 found.append(suggestion)
         time.sleep(0.1)
-    questions = [s for s in found if s.split() and s.split()[0].lower() in QUESTION_WORDS]
     return {"provider": "google-autocomplete", "keyword": args.keyword, "suggestions": found,
-            "questions": questions}
+            "note": "Unfiltered. Drop suggestions that don't match the reader's intent before using them."}
 
 
 # --- site (cannibalisation) -------------------------------------------------------------------

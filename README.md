@@ -22,7 +22,7 @@ Built by [The Vibe Marketing Lab](https://www.skool.com/the-vibe-marketing-lab) 
 1. **Claude Code** with a Claude Pro or Max subscription.
 2. **Your business files** in the project you run from: `reference/core/audience.md` and `reference/core/offer.md` at minimum. `/mos-copy-research` writes its bank to `business/offer/copy-research-bank.md` and the avatar log under `business/audience/_shared/`.
 3. **For `/mos-copy-brief` (optional keys, in the `.env` of the folder you run from):** Python 3.9+, plus
-   - `DATAFORSEO_LOGIN` + `DATAFORSEO_PASSWORD` for keyword numbers and Google results (pay as you go, about $0.11 per brief)
+   - `DATAFORSEO_LOGIN` + `DATAFORSEO_PASSWORD` for keyword numbers and Google results (pay as you go, about $0.05-0.12 per brief)
    - `FIRECRAWL_API_KEY` for competitor pages (the free plan covers roughly 100 briefs a month)
    - or `APIFY_TOKEN` as a fallback for both (no keyword numbers)
    - or nothing: the free version uses Claude's own search and says what it couldn't measure.

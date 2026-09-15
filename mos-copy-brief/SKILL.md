@@ -20,7 +20,7 @@ Produce a brief a writer (human or `/mos-copywriting`) can start from immediatel
 **The deliverable is one markdown file:** `content/briefs/<YYYY-MM-DD>-<keyword-slug>-brief.md`. Research files go in a temp run folder and are not part of the output.
 
 **Two rules that override everything else:**
-1. **Never invent data.** A metric the run didn't measure is written `Not measured (tier N)`. A URL that isn't in the verified sitemap doesn't go in the brief.
+1. **Never invent data.** A metric the run didn't measure is written `Not measured (<reason>)`, e.g. `Not measured (tier 2)` or `Not measured (DataForSEO returned none)`. A URL that isn't in the verified sitemap doesn't go in the brief.
 2. **The brief is a review checkpoint.** Stop after saving it. Never start writing the article.
 
 ## Paths: read before running any command
@@ -47,7 +47,7 @@ The research script is `~/.claude/skills/mos-copy-brief/scripts/brief_research.p
 | Heading themes, gaps, word target | `themes` | `themes` | `themes` |
 | Sitemap links, rare stats, outline | Same on every tier | Same | Same |
 
-Typical spend: tier 1 is about $0.11 of DataForSEO credit plus 8-10 Firecrawl credits. Tier 2 is about $0.02 of Apify usage. Tier 3 is free. Mixed setups work job by job; the preflight `plan` picks the best working provider for each job.
+Typical spend: tier 1 is about $0.05-0.12 of DataForSEO credit plus 7-10 Firecrawl credits. Tier 2 is about $0.02 of Apify usage. Tier 3 is free. Mixed setups work job by job; the preflight `plan` picks the best working provider for each job.
 
 ---
 
@@ -95,7 +95,7 @@ Read whichever of these exist (MarketingOS brain first, older `reference/` layou
 | USPs | `business/offers/*` | `reference/core/offer.md` |
 | Proof | `business/proof/testimonials.md` | `reference/proof/testimonials.md` |
 | Restrictions + goals | `business/strategy/strategy.md`, `business/strategy/goals.md` | project `CLAUDE.md` |
-| Research Bank (reader language) | `business/offer/copy-research-bank.md` | none |
+| Research Bank (reader language) | `business/offer/copy-research-bank.md` (singular `offer/`: that's where `/mos-copy-research` writes it) | none |
 | Previous content | `content/` (list briefs and published pieces) | none |
 
 If the avatar or voice file is missing or still a template, say so and suggest `/mos-onboard`. Leave the field as `Not provided: run /mos-onboard` rather than inventing brand details. Ask for the site domain if no file states it.
@@ -106,15 +106,17 @@ If a brand file names an offer or page (for example "link to the Growth System p
 
 **Choose `<run>` now:** the system temp folder + `/mos-copy-brief/<keyword-slug>`, written out in full (e.g. `/tmp/mos-copy-brief/how-to-get-more-gym-members`). Use that exact string everywhere below and in both subagent briefs.
 
-In **one turn**, start both subagents AND the first data commands, so they overlap. Tell each subagent to put its full findings in its final reply, as well as any file it saves, so nothing is lost if a message handback fails.
+Create it first: `mkdir -p <run>/pages`.
+
+In **one turn**, start both subagents AND the first data commands, so they overlap. Each subagent saves its result to a file in `<run>` AND returns it in full as its final reply. **Subagent reports can fail to arrive.** If a subagent finishes and no result reaches you, read its file (`<run>/sitemap-urls.md`, `<run>/information-gain.md`). If the file is missing too, message the subagent and ask it to send its result.
 
 **Subagent A: sitemap verifier.** Brief it with the domain, the keyword, the brand's offer/page names from Step 2, and the resolved `<run>` path. Tell it to:
 1. Fetch `https://<domain>/sitemap.xml` (also try `/sitemap_index.xml` and the `Sitemap:` line in `/robots.txt`), follow child sitemaps, and collect every URL.
 2. No sitemap: collect the links in the homepage navigation and footer instead, and say so.
-3. Save the full list to `<run>/sitemap-urls.md`.
+3. Save the full URL list, plus everything in item 4, to `<run>/sitemap-urls.md`.
 4. Return 5-10 recommended internal links for the keyword (service/product pages first, then 2-4 related posts), each as `full URL (anchor: natural anchor text)`; the live URL for each named offer/page, or "not found"; and any slugs that look like they already target the keyword (cannibalisation risk).
 
-**Subagent B: Information Gain researcher.** Hand it the full text of `references/information-gain.md` (in this skill's folder) with the keyword, a one-line brand/industry description and the country.
+**Subagent B: Information Gain researcher.** Read `~/.claude/skills/mos-copy-brief/references/information-gain.md` yourself and paste its full text into the subagent's prompt (a subagent can't resolve this skill's relative paths), followed by the keyword, a one-line brand/industry description, the country and its output path `<run>/information-gain.md`.
 
 **You, meanwhile:** run the data commands for the locked plan.
 
@@ -145,9 +147,11 @@ cd <brain> && python3 <script> themes --dir <run>/pages --out <run>/themes.json
 The theme list is deliberately generic, so niche topics land in `unmatched_headings`. **Read those and cluster them yourself.** In listicle SERPs they are usually the actual substance (the individual ideas, tactics or tools competitors list).
 
 ### 3e. Cannibalisation
-- `plan.site_check` = dataforseo: `cd <brain> && python3 <script> site --domain <domain> --keyword "<kw>" --country <cc> --out <run>/site.json`. Small sites return nothing; if so, also do the next line.
-- Otherwise: `cd <brain> && python3 <script> serp --provider apify --keyword "site:<domain> <kw>" --country <cc> --out <run>/site-serp.json`, or WebSearch `site:<domain> <kw>` on tier 3.
-- Cross-check the slugs Subagent A flagged.
+Run this after Subagent A reports.
+- **Always (every tier):** check Subagent A's sitemap slugs for pages that already target the keyword. This is the baseline check.
+- `plan.site_check` = dataforseo and the sitemap has roughly 100+ URLs: also run `cd <brain> && python3 <script> site --domain <domain> --keyword "<kw>" --country <cc> --out <run>/site.json`. Skip it for smaller sites: it costs about $0.04 and returns nothing for sites below DataForSEO's index.
+- `plan.site_check` = apify: optionally run `cd <brain> && python3 <script> serp --provider apify --keyword "site:<domain> <kw>" --country <cc> --out <run>/site-serp.json` (Google honours `site:` there).
+- Tier 3: rely on the sitemap slugs alone. Claude's WebSearch ignores the `site:` operator and returns unrelated sites.
 
 ### 3f. AI search
 - The AI Overview (when Google shows one) is already in `<run>/serp.json` on tiers 1 and 2.
@@ -161,16 +165,20 @@ If a command exits with an error, report it in one line, move that job to the ne
 - **Table stakes:** themes with `pages_covering` of 3 or more go in the outline.
 - **Gaps:** themes covered by 0-1 pages that matter to this avatar, angles in the Research Bank or brand files no competitor touches, and questions from PAA/autocomplete no page answers. Every gap names its evidence ("0 of 8 pages cover pricing").
 - **Stat check:** for each Information Gain stat, Grep `<run>/pages` for its key number and its source's domain. A stat found on a competitor page is dropped from the top 5, or kept and labelled `also used by #N`. Only unmatched stats may be described as not used by the ranking pages.
+- **Stat spot-check:** WebFetch the source of each top-5 stat and confirm the number appears as quoted. Drop any stat you can't confirm, and promote the next one.
+- **FAQ questions:** use PAA, autocomplete and related searches only when they match the avatar's intent (e.g. a gym owner's question, not a gym member's). Drop junk suggestions. If fewer than 4 qualify, reframe competitor FAQ headings for the avatar and say so.
 - **AI-only sources:** domains cited by the AI Overview or ChatGPT that aren't in the organic top 10.
 - **Buying journey:** set the Schwartz awareness stage from intent (informational: Unaware / Problem-Aware; "best / vs / review": Solution-Aware; branded or "pricing": Product / Most-Aware), cross-checked against the avatar. Judge market sophistication (Stage 1-5) from how similar the competitors' claims are.
 - **Word count:** `themes.json` → `word_count.target`. If confidence is low, say so in the cell.
-- **Secondary keywords:** tier 1 uses the highest-volume relevant terms from `keywords.json`; other tiers use terms repeated across autocomplete, PAA, related searches and competitor headings, with volume `Not measured`.
+- **Secondary keywords:** tier 1 uses the highest-volume relevant terms from `keywords.json`. If that gives fewer than 3 relevant terms (common for low-volume keywords; the JSON `note` says so), top up with terms repeated across autocomplete, PAA, related searches and competitor headings, marked `Not measured (no volume returned)`. Other tiers use those sources only.
 
 ## Step 5: Write the brief
 
 Follow `references/brief-template.md` (in this skill's folder) exactly: header, the three Brief Tables, AI Search Visibility, Information Gain Stats, then the Article Outline.
 
 - Internal links only from Subagent A's verified list, always as full URLs.
+- The URL slug follows the folder structure of related content in the sitemap (e.g. `/guides/<slug>/` if the site's articles live there).
+- Research Pages lists the 3-5 strongest scraped pages, not every result.
 - Top 5 Information Gain stats go into the outline as `Cite stat:` bullets in the sections they fit best (intro hook, cost/benefit sections and the conclusion are the strongest placements).
 - Title tag options under 60 characters, meta description options under 160, character counts shown.
 - Escape `|` inside table cells as `\|`.

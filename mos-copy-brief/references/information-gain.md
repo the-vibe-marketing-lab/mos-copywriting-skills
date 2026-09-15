@@ -11,6 +11,7 @@ Google rewards pages that add something the ranking pages don't have, and AI ans
 - **Primary keyword:** <keyword>
 - **Brand + industry:** <one line>
 - **Country:** <country>, prefer local data, then international
+- **Output path:** <absolute path, e.g. /tmp/mos-copy-brief/keyword-slug/information-gain.md>
 - **Gap themes:** <optional list>
 
 ## Method
@@ -56,7 +57,9 @@ Mix the document types when you can. For each stat, record:
 - where it fits in the article (intro hook, cost section, FAQ, conclusion ...)
 - credibility: `High`, `Medium` or `Flag` with the reason (dated, small sample, vendor-funded)
 
-## Output (return this as markdown, write no files)
+## Output
+
+Save this markdown to the output path you were given AND return it in full as your final reply. The file is the backup if your reply doesn't reach the orchestrator.
 
 ```markdown
 ## INFORMATION GAIN: <keyword>

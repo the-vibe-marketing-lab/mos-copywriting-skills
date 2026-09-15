@@ -8,7 +8,7 @@ The brief is ONE markdown file. Match this shape exactly: the section names and 
 - A cell can't hold a markdown list. Put multiple items on separate lines joined with `<br>`, each starting with `• `.
 - **Escape every pipe inside a cell as `\|`.** Title tags usually contain one (`Title | Brand`) and an unescaped pipe breaks the whole table.
 - Keep cells short. Anything longer than about five lines (AI answers, stat details) goes in its own section below the tables, never in a cell.
-- Write `Not measured (tier N)` for any metric the run couldn't get, including a keyword the provider returned with no volume. Use that one label everywhere; don't mix in "0/mo" or "volume not returned". Never estimate a number.
+- Write `Not measured (<reason>)` for any metric the run couldn't get, e.g. `Not measured (tier 2)`, including a keyword the provider returned with no volume (`Not measured (no volume returned)`). Use that one label everywhere; don't mix in "0/mo" or "volume not returned". Never estimate a number.
 
 ---
 
@@ -30,6 +30,7 @@ The brief is ONE markdown file. Match this shape exactly: the section names and 
 | **Tone of Voice** | <voice in one line><br>• <attribute><br>• <attribute><br>• <words to avoid> |
 | **Restrictions and Guidelines** | **CANNOT:**<br>• <hard constraint><br>**MUST:**<br>• <required behaviour> |
 | **USPs** | • <USP + one-line proof><br>• <USP + one-line proof> |
+| **Proof** | • <testimonial, result or credential><br>(or "Not provided: run /mos-onboard") |
 
 ## 2. Content Guidelines
 
@@ -82,7 +83,7 @@ Cited by ChatGPT:
 **How to get cited:**
 - Answer the question in the first 40-60 words under each H2.
 - Use named, dated stats with sources (see section 5).
-- Phrase H2s as the questions people ask (PAA list below).
+- Phrase H2s as the questions this reader actually asks (see the FAQ section).
 - <one line specific to what the AI answers above are missing>
 
 ## 5. Information Gain Stats
@@ -134,7 +135,7 @@ Primary-source stats, each checked against the scraped competitor pages. Mark an
 
 ## Frequently Asked Questions
 
-### <Question from People Also Ask or autocomplete>?
+### <Question the avatar actually asks (PAA, autocomplete or a reframed competitor FAQ)>?
 
 **Writer guidelines:** ~60-80 words
 - Answer directly in the first sentence
