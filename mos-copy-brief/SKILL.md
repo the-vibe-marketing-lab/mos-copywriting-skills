@@ -62,6 +62,7 @@ Typical spend: tier 1 is about $0.05-0.12 of DataForSEO credit plus 7-10 Firecra
    - **DataForSEO + Firecrawl (Recommended):** full brief with keyword numbers
    - **Apify only:** everything except search volume, difficulty and CPC
    - **Neither: free version:** Claude's own search; no keyword numbers, no automatic AI Overview
+   - (The member can also type a mix via "Other", e.g. "DataForSEO, but Apify for pages instead of Firecrawl".)
 
 3. If they pick a tool preflight shows as missing or invalid, tell them exactly which variables to add to `<brain>/.env`, then re-run preflight:
    - DataForSEO: `DATAFORSEO_LOGIN`, `DATAFORSEO_PASSWORD` (API login from the DataForSEO dashboard, pay as you go)
@@ -69,7 +70,7 @@ Typical spend: tier 1 is about $0.05-0.12 of DataForSEO credit plus 7-10 Firecra
    - Apify: `APIFY_TOKEN` (free plan includes a monthly usage credit)
 
    **Never ask the member to paste a key into the chat.**
-4. **Lock the plan to their choice.** For "Apify only" run `preflight --use apify`; for the free version run `preflight --use free`. Use that output's `plan` for the rest of the run, and copy its `tier` and `not_measured` into the brief header. Say any `warning` (low Firecrawl credits) before starting.
+4. **Lock the plan to their choice.** For "Apify only" run `preflight --use apify`; for the free version run `preflight --use free`; for a mix pass the providers they want as a comma list, e.g. `preflight --use dataforseo,apify`. Use that output's `plan` for the rest of the run, and copy its `tier` and `not_measured` into the brief header. Say any `warning` (low Firecrawl credits) before starting.
 5. **Every `serp`, `scrape` and `chatgpt` command passes `--provider` with the plan's value** (`plan.serp`, `plan.scrape`, `plan.chatgpt`) whenever that value is `dataforseo`, `firecrawl` or `apify`. The values `websearch`, `webfetch` and `paste-or-skip` mean the tier-3 manual path for that job. Never let the script choose on its own: a key can be present but broken.
 
 ## Step 1: Inputs (one message)
@@ -164,7 +165,7 @@ If a command exits with an error, report it in one line, move that job to the ne
 
 - **Table stakes:** themes with `pages_covering` of 3 or more go in the outline.
 - **Gaps:** themes covered by 0-1 pages that matter to this avatar, angles in the Research Bank or brand files no competitor touches, and questions from PAA/autocomplete no page answers. Every gap names its evidence ("0 of 8 pages cover pricing").
-- **Stat check:** for each Information Gain stat, Grep `<run>/pages` for its key number and its source's domain. A stat found on a competitor page is dropped from the top 5, or kept and labelled `also used by #N`. Only unmatched stats may be described as not used by the ranking pages.
+- **Stat check:** for each Information Gain stat, Grep `<run>/pages` for its key number, its source's domain, and the organisation or report name (e.g. "BrightLocal", "AusPlay"). A competitor citing the same survey counts as a match even when it quotes a different number. A stat found on a competitor page is dropped from the top 5, or kept and labelled `also used by #N`. Only unmatched stats may be described as not used by the ranking pages.
 - **Stat spot-check:** WebFetch the source of each top-5 stat and confirm the number appears as quoted. Drop any stat you can't confirm, and promote the next one.
 - **FAQ questions:** use PAA, autocomplete and related searches only when they match the avatar's intent (e.g. a gym owner's question, not a gym member's). Drop junk suggestions. If fewer than 4 qualify, reframe competitor FAQ headings for the avatar and say so.
 - **AI-only sources:** domains cited by the AI Overview or ChatGPT that aren't in the organic top 10.
@@ -195,7 +196,7 @@ Check the saved file against this list and fix anything that fails before report
 - [ ] All three tables render (no unescaped `|` inside a cell)
 - [ ] Every internal link is a full URL from the verified sitemap list
 - [ ] Title tags < 60 chars, meta descriptions < 160 chars
-- [ ] 8-14 H2s, Key Takeaways near the top, Why Choose + CTA conclusion present, 4-6 FAQs
+- [ ] 8-14 H2s in total (Key Takeaways, Why Choose, the FAQ H2 and the CTA conclusion all count), Key Takeaways near the top, 4-6 FAQs as H3s under the FAQ H2
 - [ ] Every outline section except Key Takeaways opens with a `**Writer guidelines:**` line giving its word target; bullets are one idea each
 - [ ] At least one `**SERP gap:**` flag, with evidence
 - [ ] Information Gain stats have full source URLs and passed the stat check (or a thin-data note is stated)

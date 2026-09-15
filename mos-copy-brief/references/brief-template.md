@@ -71,7 +71,7 @@ The brief is ONE markdown file. Match this shape exactly: the section names and 
 Cited by the AI Overview:
 - <domain>: <URL>
 
-**ChatGPT:** <Present / Not captured>
+**ChatGPT:** <Present / Not captured> (ChatGPT often answers without searching the web. Then write "None: answered without web search" under Cited by ChatGPT.)
 
 <2-4 line summary of the answer.>
 
@@ -157,4 +157,5 @@ Primary-source stats, each checked against the scraped competitor pages. Mark an
 - 8-14 H2s. Key Takeaways near the top. 4-6 FAQs. Why Choose and the CTA conclusion always present.
 - Every section except Key Takeaways opens with a `**Writer guidelines:**` line giving its word target, then bullets of about 20 words or fewer, one idea each.
 - Every internal link is a full URL from the verified sitemap list. Never a relative path, never a guessed URL.
-- Section word targets add up to the Word Count range in section 2 (within about 10%).
+- Section word targets add up to the Word Count range in section 2 (within about 10%). FAQ answers count toward the total; Key Takeaways doesn't.
+- "8-14 H2s" counts every H2 in the outline, including Key Takeaways, Why Choose, the FAQ H2 and the CTA conclusion.

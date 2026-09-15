@@ -405,11 +405,23 @@ def build_plan(checks):
     return plan
 
 
-USE_MASKS = {"all": ("dataforseo", "firecrawl", "apify"), "apify": ("apify",), "free": ()}
+PROVIDERS = ("dataforseo", "firecrawl", "apify")
+
+
+def parse_use(value):
+    """'all', 'free', or a comma list of providers, e.g. 'dataforseo,apify'."""
+    if value == "all":
+        return PROVIDERS
+    if value == "free":
+        return ()
+    chosen = tuple(p.strip() for p in value.split(",") if p.strip())
+    if not chosen or any(p not in PROVIDERS for p in chosen):
+        raise argparse.ArgumentTypeError(f"use all, free, or a comma list of {', '.join(PROVIDERS)}")
+    return chosen
 
 
 def cmd_preflight(args):
-    allowed = USE_MASKS[args.use]
+    allowed = args.use
     checkers = {"dataforseo": check_dataforseo, "firecrawl": check_firecrawl, "apify": check_apify}
     checks = {name: checker() if name in allowed else {"status": "not_used"} for name, checker in checkers.items()}
     return {"use": args.use, "checks": checks, "plan": build_plan(checks)}
@@ -797,8 +809,8 @@ def build_parser():
         return p
 
     command("preflight", cmd_preflight).add_argument(
-        "--use", choices=sorted(USE_MASKS), default="all",
-        help="all = check every provider; apify = Apify only; free = no providers (tier 3)")
+        "--use", type=parse_use, default="all",
+        help="all (default), free (tier 3), or a comma list of providers, e.g. apify or dataforseo,apify")
     command("serp", cmd_serp, keyword=True, provider=("dataforseo", "apify"))
     command("keywords", cmd_keywords, keyword=True).add_argument("--limit", type=int, default=20)
     command("autocomplete", cmd_autocomplete, keyword=True)
