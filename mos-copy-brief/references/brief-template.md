@@ -8,7 +8,7 @@ The brief is ONE markdown file. Match this shape exactly: the section names and 
 - A cell can't hold a markdown list. Put multiple items on separate lines joined with `<br>`, each starting with `• `.
 - **Escape every pipe inside a cell as `\|`.** Title tags usually contain one (`Title | Brand`) and an unescaped pipe breaks the whole table.
 - Keep cells short. Anything longer than about five lines (AI answers, stat details) goes in its own section below the tables, never in a cell.
-- Write `Not measured (tier N)` for any metric the run couldn't get. Never estimate a number.
+- Write `Not measured (tier N)` for any metric the run couldn't get, including a keyword the provider returned with no volume. Use that one label everywhere; don't mix in "0/mo" or "volume not returned". Never estimate a number.
 
 ---
 
